@@ -1,9 +1,11 @@
 <?php
 /**
  * Plugin Name: Calendar to Discord
- * Description: Sends a message to a Discord channel when an event is created.
+ * Plugin Uri: https://www.github.com/RealHartlMax/Calendar-to-Discord
+ * Description: Sends a message to a Discord channel when an event is created in the Wordpress Plugin My Events Calendar.
  * Version: 1.0
  * Author: RealHartlMax
+ * Author Uri: https://www.hartlmax.de
  * License: GPL2
  */
 
