@@ -50,10 +50,20 @@ class RHM_C2D_OptionsPage
         // Set class property
         $this->options = get_option($this->optionName);
         ?>
-         <div class="wrap">
-             <?php screen_icon();?>
-             <h2>My Settings</h2>
-             <form method="post" action="options.php">
+        <div class="wrap">
+            <?php screen_icon();?>
+            <h2>Webhook for Discord</h2>
+            <p>
+                <?php
+                    if (isset($_GET['webhook']) && $_GET['webhook'] === 'test') {
+                        echo 'Test wurde ausgeführt. ';
+                        send_discord_message();
+                    } else {
+                        echo '<a href="options-general.php?page=' . $this->slug . '&amp;webhook=test">Teste den Webhook</a>';
+                    }
+                ?>
+            </p>
+            <form method="post" action="options.php">
              <?php
                 // This prints out all hidden setting fields
                 settings_fields($this->optionGroup);
@@ -61,8 +71,8 @@ class RHM_C2D_OptionsPage
                 submit_button();
             ?>
             </form>
-         </div>
-         <?php
+        </div>
+        <?php
     }
 
     /**
@@ -226,9 +236,15 @@ function send_discord_message()
     // Check for errors
     if (is_wp_error($response)) {
         // Log error message
+        if (is_admin()) {
+            echo 'Fehler: ' . $response->get_error_message();
+        }
         error_log('Error sending Discord message: ' . $response->get_error_message());
     } else {
         // Log success message
+        if (is_admin()) {
+            echo 'Ausführen war erfolgreich.';
+        }
         error_log('Successfully sent Discord message.');
     }
 }
