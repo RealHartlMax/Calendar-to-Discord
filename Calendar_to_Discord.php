@@ -139,7 +139,7 @@ class RHM_C2D_OptionsPage
             $sectionId, // Section
             [
                 'name' => 'mentions',
-                'description' => 'Mit Komma getrennt ohne @. z.B. "everyone,events"'
+                'description' => 'Mit Komma getrennt ohne @. z.B. "everyone,events"',
             ]
         );
     }
@@ -202,15 +202,14 @@ if (is_admin()) {
     $my_settings_page = new RHM_C2D_OptionsPage();
 }
 
-
 // Send Discord message when new event is created
 add_action('tribe_events_single_event_before_the_content', 'send_discord_message_on_new_event');
 function send_discord_message_on_new_event()
 {
     // Check if this is a new event
     if (is_new_event()) {
-        // Send Discord message
-        send_discord_message();
+        // Send Discord message with Link to website
+        send_discord_message('Website Max Hartl', 'https://hartlmax.de/');
     }
 }
 
@@ -220,7 +219,7 @@ function is_new_event()
     return true;
 }
 
-function send_discord_message()
+function send_discord_message($title = null, $url = null)
 {
     // Get plugin settings
     $options = get_option('rhm_c2d');
@@ -233,12 +232,12 @@ function send_discord_message()
     $body = [
         'username' => $webhook_name,
         'avatar_url' => $webhook_avatar,
-        'content' => $webhook_message
+        'content' => $webhook_message,
     ];
 
     if (strlen($mentions) > 0) {
         $body['allowed_mentions'] = [
-            "parse" => explode(',', $mentions)
+            "parse" => explode(',', $mentions),
         ];
         $message_mentions = '';
         foreach (explode(',', $mentions) as $mention) {
@@ -247,13 +246,21 @@ function send_discord_message()
         $body['content'] = $message_mentions . $body['content'];
     }
 
+    if ($title && $url) {
+        $body['embeds'] = [
+            [
+                'title' => $title,
+                'url' => $url,
+            ],
+        ];
+    }
 
     // Set up request data
     $request_data = [
         'headers' => [
             'Content-Type' => 'application/json',
         ],
-        'body' => json_encode($body)
+        'body' => json_encode($body),
     ];
 
     // Send request
