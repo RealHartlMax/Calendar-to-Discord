@@ -18,14 +18,18 @@ function my_plugin_options() {
     if ( !current_user_can( 'manage_options' ) )  {
         wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
     }
-    echo '<div class="wrap">';
-    echo '<p>Here you can configure the settings for the plugin.</p>';
-    </ hr>
-    <form action="webhook_url" method="post">
-        Webhook URL: <input type="text" name="webhook_url" value="">
-            <input type="save">
-            </form> 
-    echo '</div>';
+	?>
+		<div class="wrap">
+			<h1><?php echo get_admin_page_title() ?></h1>
+			<form method="post" action="options.php">
+				<?php
+					settings_fields( 'rhm_calendar_to_discord' ); // settings group name
+					do_settings_sections( 'rhm_c2d' ); // just a page slug
+					submit_button(); // "Save Changes" button
+				?>
+			</form>
+		</div>
+	<?php
 }
 
 // Send Discord message when new event is created
