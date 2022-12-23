@@ -11,7 +11,7 @@
 // Add settings page
 add_action( 'admin_menu', 'my_plugin_menu' );
 function my_plugin_menu() {
-    add_options_page( 'My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options' );
+    add_options_page( 'Calendar to Discord Options', 'Calendar to Discord', 'manage_options', 'my-unique-identifier', 'my_plugin_options' );
 }
 
 function my_plugin_options() {
@@ -20,6 +20,11 @@ function my_plugin_options() {
     }
     echo '<div class="wrap">';
     echo '<p>Here you can configure the settings for the plugin.</p>';
+    </ hr>
+    <form action="webhook_url" method="post">
+        Webhook URL: <input type="text" name="webhook_url" value="">
+            <input type="save">
+            </form> 
     echo '</div>';
 }
 
