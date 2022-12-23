@@ -134,6 +134,17 @@ class RHM_C2D_OptionsPage
                 'name' => 'message',
             ]
         );
+        add_settings_field(
+            'mentions', // ID
+            'Mentions', // Title
+            [$this, 'print_input_field'], // Callback
+            $this->slug, // Page
+            $sectionId, // Section
+            [
+                'name' => 'mentions',
+                'description' => 'Mit Komma getrennt ohne @. z.B. "everyone,events"'
+            ]
+        );
     }
 
     /**
@@ -183,6 +194,9 @@ class RHM_C2D_OptionsPage
             $args['name'],
             esc_attr($this->options[$args['name']])
         );
+        if (isset($args['description'])) {
+            echo '<p>' . $args['description'] . '</p>';
+        }
     }
 }
 
@@ -217,18 +231,33 @@ function send_discord_message()
     $webhook_name = $options['name'];
     $webhook_avatar = $options['avatar'];
     $webhook_message = $options['message'];
+    $mentions = $options['mentions'] ?: '';
+
+    $body = [
+        'username' => $webhook_name,
+        'avatar_url' => $webhook_avatar,
+        'content' => $webhook_message
+    ];
+
+    if (strlen($mentions) > 0) {
+        $body['allowed_mentions'] = [
+            "parse" => explode(',', $mentions)
+        ];
+        $message_mentions = '';
+        foreach (explode(',', $mentions) as $mention) {
+            $message_mentions = '@' . $mention . ' ';
+        }
+        $body['content'] = $message_mentions . $body['content'];
+    }
+
 
     // Set up request data
-    $request_data = array(
-        'headers' => array(
+    $request_data = [
+        'headers' => [
             'Content-Type' => 'application/json',
-        ),
-        'body' => json_encode(array(
-            'username' => $webhook_name,
-            'avatar_url' => $webhook_avatar,
-            'content' => $webhook_message,
-        )),
-    );
+        ],
+        'body' => json_encode($body)
+    ];
 
     // Send request
     $response = wp_remote_post($webhook_url, $request_data);
