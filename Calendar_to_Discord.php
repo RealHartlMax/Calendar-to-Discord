@@ -8,10 +8,12 @@
  * Author URI: https://www.hartlmax.de
  */
 
+$rhmc2d_slug = 'rhmc2d';
+
 // Add settings page
 add_action( 'admin_menu', 'my_plugin_menu' );
 function my_plugin_menu() {
-    add_options_page( 'Calendar to Discord Options', 'Calendar to Discord', 'manage_options', 'my-unique-identifier', 'my_plugin_options' );
+    add_options_page( 'Calendar to Discord Options', 'Calendar to Discord', 'manage_options', $rhmc2d_slug, 'my_plugin_options' );
 }
 
 // Add Settings Fields
@@ -102,7 +104,6 @@ function rhmc2d_field_webhook_message( $args ){
 	);
 }
 
-
 function my_plugin_options() {
     if ( !current_user_can( 'manage_options' ) )  {
         wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -110,7 +111,7 @@ function my_plugin_options() {
 	?>
 		<div class="wrap">
 			<h1><?php echo get_admin_page_title() ?></h1>
-			<form method="post" action="options.php">
+			<form method="post" action="<?php echo admin_url('options-general.php?page=' . $rhmc2d_slug); ?>">
 				<?php
 					settings_fields( 'rhm_calendar_to_discord' ); // settings group name
 					do_settings_sections( 'rhm_c2d' ); // just a page slug
