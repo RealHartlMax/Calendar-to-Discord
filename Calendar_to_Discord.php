@@ -8,172 +8,227 @@
  * Author URI: https://www.hartlmax.de
  */
 
-$rhmc2d_slug = 'rhmc2d';
-$rhmc2d_option_group = 'rhm_c2d_settings';
-$rhmc2d_section_id = 'rhm_c2d_section_id';
+class RHM_C2D_OptionsPage
+{
+    /**
+     * Holds the values to be used in the fields callbacks
+     */
+    private $slug = 'rhm_c2d';
+    private $optionName = 'rhm_c2d';
+    private $optionGroup = 'rhm_c2d_options';
+    private $options;
 
-// Add settings page
-add_action( 'admin_menu', 'my_plugin_menu' );
-function my_plugin_menu() {
-    global $rhmc2d_slug;
-    add_options_page( 'Calendar to Discord Options', 'Calendar to Discord', 'manage_options', $rhmc2d_slug, 'my_plugin_options' );
-}
-
-// Add Settings Fields
-add_action( 'admin_init',  'rhmc2d_settings_fields' );
-function rhmc2d_settings_fields(){
-    global $rhmc2d_slug, $rhmc2d_option_group, $rhmc2d_section_id;
-
-	// 1. create section
-	add_settings_section(
-		$rhmc2d_section_id, // section ID
-		'', // title (optional)
-		'', // callback function to display the section (optional)
-		$rhmc2d_slug
-	);
-
-	// 2. register fields
-	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_url');
-	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_name');
-	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_avatar');
-	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_message');
-
-	// 3. add fields
-	add_settings_field(
-		'rhm_c2d_webhook_url',
-		'WebHook URL',
-		'rhmc2d_text_input', // function to print the field
-		$rhmc2d_slug,
-		$rhmc2d_section_id, // section ID
-        [
-            'name' => 'rhm_c2d_webhook_url'
-        ]
-	);
-	add_settings_field(
-		'rhm_c2d_webhook_name',
-		'WebHook Name',
-		'rhmc2d_text_input', // function to print the field
-		$rhmc2d_slug,
-		$rhmc2d_section_id, // section ID
-        [
-            'name' => 'rhm_c2d_webhook_name'
-        ]
-	);
-	add_settings_field(
-		'rhm_c2d_webhook_avatar',
-		'WebHook Avatar',
-		'rhmc2d_text_input', // function to print the field
-		$rhmc2d_slug,
-		$rhmc2d_section_id, // section ID
-        [
-            'name' => 'rhm_c2d_webhook_avatar'
-        ]
-	);
-	add_settings_field(
-		'rhm_c2d_webhook_message',
-		'WebHook Message',
-		'rhmc2d_text_input', // function to print the field
-		$rhmc2d_slug,
-		$rhmc2d_section_id, // section ID
-        [
-            'name' => 'rhm_c2d_webhook_message'
-        ]
-	);
-}
-
-// custom callback function to print field HTML
-function rhmc2d_text_input( $args ){
-	printf(
-		'<input type="text" id="%s" name="%s" value="%s" />',
-		$args[ 'name' ],
-		$args[ 'name' ],
-		get_option( $args[ 'name' ], '' ) // Second parameter is default value of the field
-	);
-}
-
-function my_plugin_options() {
-    global $rhmc2d_slug, $rhmc2d_option_group, $rhmc2d_section_id;
-    if ( !current_user_can( 'manage_options' ) )  {
-        wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+    /**
+     * Start up
+     */
+    public function __construct()
+    {
+        add_action('admin_menu', [$this, 'add_plugin_page']);
+        add_action('admin_init', [$this, 'page_init']);
     }
-	?>
-		<div class="wrap">
-			<h1><?php echo get_admin_page_title() ?></h1>
-			<form method="post" action="<?php echo admin_url('options-general.php?page=' . $rhmc2d_slug); ?>">
-				<?php
-                    settings_fields( $rhmc2d_option_group ); // settings group name
-					do_settings_sections( $rhmc2d_slug ); // just a page slug
-					submit_button(); // "Save Changes" button
-				?>
-			</form>
-		</div>
-	<?php
+
+    /**
+     * Add options page
+     */
+    public function add_plugin_page()
+    {
+        // This page will be under "Settings"
+        add_options_page(
+            'Calendar to Discord', // page title
+            'Calendar to Discord', // menu title
+            'manage_options', // capability
+            $this->slug, // menu slug
+            [$this, 'create_admin_page']// function to print admin page
+        );
+    }
+
+    /**
+     * Options page callback
+     */
+    public function create_admin_page()
+    {
+        // Set class property
+        $this->options = get_option($this->optionName);
+        ?>
+         <div class="wrap">
+             <?php screen_icon();?>
+             <h2>My Settings</h2>
+             <form method="post" action="options.php">
+             <?php
+                // This prints out all hidden setting fields
+                settings_fields($this->optionGroup);
+                do_settings_sections($this->slug);
+                submit_button();
+            ?>
+            </form>
+         </div>
+         <?php
+    }
+
+    /**
+     * Register and add settings
+     */
+    public function page_init()
+    {
+        register_setting(
+            $this->optionGroup, // Option group
+            $this->optionName, // Option name
+            [$this, 'sanitize']// Sanitize
+        );
+
+        $sectionId = 'webhook-section';
+        add_settings_section(
+            $sectionId, // ID
+            'Webhook', // Title
+            [$this, 'print_section_info'], // Callback
+            $this->slug// Page
+        );
+
+        add_settings_field(
+            'url', // ID
+            'URL', // Title
+            [$this, 'print_input_field'], // Callback
+            $this->slug, // Page
+            $sectionId, // Section
+            [
+                'name' => 'url',
+            ]
+        );
+        add_settings_field(
+            'name', // ID
+            'Name', // Title
+            [$this, 'print_input_field'], // Callback
+            $this->slug, // Page
+            $sectionId, // Section
+            [
+                'name' => 'name',
+            ]
+        );
+        add_settings_field(
+            'avatar', // ID
+            'Avatar', // Title
+            [$this, 'print_input_field'], // Callback
+            $this->slug, // Page
+            $sectionId, // Section
+            [
+                'name' => 'avatar',
+            ]
+        );
+        add_settings_field(
+            'message', // ID
+            'Message', // Title
+            [$this, 'print_input_field'], // Callback
+            $this->slug, // Page
+            $sectionId, // Section
+            [
+                'name' => 'message',
+            ]
+        );
+    }
+
+    /**
+     * Sanitize each setting field as needed
+     *
+     * @param array $input Contains all settings fields as array keys
+     */
+    public function sanitize($input)
+    {
+
+        if (!empty($input['url'])) {
+            $input['url'] = sanitize_text_field($input['url']);
+        }
+
+        if (!empty($input['name'])) {
+            $input['name'] = sanitize_text_field($input['name']);
+        }
+
+        if (!empty($input['avatar'])) {
+            $input['avatar'] = sanitize_text_field($input['avatar']);
+        }
+
+        if (!empty($input['message'])) {
+            $input['message'] = sanitize_text_field($input['message']);
+        }
+
+        return $input;
+    }
+
+    /**
+     * Print the Section text
+     */
+    public function print_section_info()
+    {
+        print 'Webhook:';
+    }
+
+    /**
+     * Get the settings option array and print one of its values
+     */
+    public function print_input_field($args)
+    {
+        printf(
+            '<input type="text" id="%s" name="%s[%s]" value="%s" />',
+            $args['name'],
+            $this->optionName,
+            $args['name'],
+            esc_attr($this->options[$args['name']])
+        );
+    }
 }
 
-// Show success message
-add_action( 'admin_notices', 'rhmc2d_notice' );
-function rhmc2d_notice() {
-    global $rhmc2d_slug;
-	if(
-		isset( $_GET[ 'page' ] ) 
-		&& $rhmc2d_slug == $_GET[ 'page' ]
-		&& isset( $_GET[ 'settings-updated' ] ) 
-		&& true == $_GET[ 'settings-updated' ]
-	) {
-		?>
-			<div class="notice notice-success is-dismissible">
-				<p>
-					<strong>Calender to Discord: Changes saved.</strong>
-				</p>
-			</div>
-		<?php
-	}
-
+if (is_admin()) {
+    // Load class for Options Page
+    $my_settings_page = new RHM_C2D_OptionsPage();
 }
+
 
 // Send Discord message when new event is created
-add_action( 'tribe_events_single_event_before_the_content', 'send_discord_message_on_new_event' );
-function send_discord_message_on_new_event() {
+add_action('tribe_events_single_event_before_the_content', 'send_discord_message_on_new_event');
+function send_discord_message_on_new_event()
+{
     // Check if this is a new event
-    if ( is_new_event() ) {
+    if (is_new_event()) {
         // Send Discord message
         send_discord_message();
     }
 }
 
-function is_new_event() {
+function is_new_event()
+{
     // Check if event is new
     return true;
 }
 
-function send_discord_message() {
+function send_discord_message()
+{
     // Get plugin settings
-    $webhook_url = get_option( 'webhook_url' );
-    $webhook_name = get_option( 'webhook_name' );
-    $webhook_avatar = get_option( 'webhook_avatar' );
-    $webhook_message = get_option( 'webhook_message' );
+    $options = get_option('rhm_c2d');
+    $webhook_url = $options['url'];
+    $webhook_name = $options['name'];
+    $webhook_avatar = $options['avatar'];
+    $webhook_message = $options['message'];
 
     // Set up request data
     $request_data = array(
         'headers' => array(
             'Content-Type' => 'application/json',
         ),
-        'body' => json_encode( array(
+        'body' => json_encode(array(
             'username' => $webhook_name,
             'avatar_url' => $webhook_avatar,
             'content' => $webhook_message,
-        ) ),
+        )),
     );
 
     // Send request
-    $response = wp_remote_post( $webhook_url, $request_data );
+    $response = wp_remote_post($webhook_url, $request_data);
 
     // Check for errors
-    if ( is_wp_error( $response ) ) {
+    if (is_wp_error($response)) {
         // Log error message
-        error_log( 'Error sending Discord message: ' . $response->get_error_message() );
+        error_log('Error sending Discord message: ' . $response->get_error_message());
     } else {
         // Log success message
-        error_log( 'Successfully sent Discord message.' );
+        error_log('Successfully sent Discord message.');
     }
 }
