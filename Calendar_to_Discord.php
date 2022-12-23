@@ -49,30 +49,27 @@ class RHM_C2D_OptionsPage
     {
         // Set class property
         $this->options = get_option($this->optionName);
-        ?>
-        <div class="wrap">
-            <?php screen_icon();?>
-            <h2>Webhook for Discord</h2>
-            <p>
-                <?php
-                    if (isset($_GET['webhook']) && $_GET['webhook'] === 'test') {
-                        echo 'Test wurde ausgeführt. ';
-                        send_discord_message();
-                    } else {
-                        echo '<a href="options-general.php?page=' . $this->slug . '&amp;webhook=test">Teste den Webhook</a>';
-                    }
-                ?>
-            </p>
-            <form method="post" action="options.php">
-             <?php
-                // This prints out all hidden setting fields
-                settings_fields($this->optionGroup);
-                do_settings_sections($this->slug);
-                submit_button();
-            ?>
-            </form>
-        </div>
-        <?php
+
+        echo '<div class="wrap">';
+        screen_icon();
+        echo '<h2>Webhook for Discord</h2>';
+        if (isset($_GET['webhook']) && $_GET['webhook'] === 'test') {
+            echo '<p>';
+            echo 'Test wurde ausgeführt. ';
+            send_discord_message();
+            echo '<br />';
+            echo '<a href="options-general.php?page=' . $this->slug . '">Testmodus beenden</a>';
+            echo '</p>';
+        } else {
+            echo '<a href="options-general.php?page=' . $this->slug . '&amp;webhook=test">Teste den Webhook</a>';
+            echo '<form method="post" action="options.php">';
+            // This prints out all hidden setting fields
+            settings_fields($this->optionGroup);
+            do_settings_sections($this->slug);
+            submit_button();
+            echo '</form>';
+        }
+        echo '</div>';
     }
 
     /**
