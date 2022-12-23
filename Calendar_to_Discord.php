@@ -56,7 +56,7 @@ class RHM_C2D_OptionsPage
         if (isset($_GET['webhook']) && $_GET['webhook'] === 'test') {
             echo '<p>';
             echo 'Test wurde ausgeführt. ';
-            send_discord_message();
+            send_discord_message('Website Max Hartl', 'https://hartlmax.de/');
             echo '<br />';
             echo '<a href="options-general.php?page=' . $this->slug . '">Testmodus beenden</a>';
             echo '</p>';
@@ -209,7 +209,7 @@ function send_discord_message_on_new_event()
     // Check if this is a new event
     if (is_new_event()) {
         // Send Discord message with Link to website
-        send_discord_message('Website Max Hartl', 'https://hartlmax.de/');
+        send_discord_message();
     }
 }
 
