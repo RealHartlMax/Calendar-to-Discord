@@ -9,6 +9,8 @@
  */
 
 $rhmc2d_slug = 'rhmc2d';
+$rhmc2d_option_group = 'rhm_c2d_settings';
+$rhmc2d_section_id = 'rhm_c2d_section_id';
 
 // Add settings page
 add_action( 'admin_menu', 'my_plugin_menu' );
@@ -20,83 +22,67 @@ function my_plugin_menu() {
 // Add Settings Fields
 add_action( 'admin_init',  'rhmc2d_settings_fields' );
 function rhmc2d_settings_fields(){
-
-	// I created variables to make the things clearer
-	$page_slug = 'rhm_c2d';
-	$option_group = 'rhm_c2d_settings';
-    $section_id = 'rhm_c2d_section_id';
+    global $rhmc2d_slug, $rhmc2d_option_group, $rhmc2d_section_id;
 
 	// 1. create section
 	add_settings_section(
-		$section_id, // section ID
+		$rhmc2d_section_id, // section ID
 		'', // title (optional)
 		'', // callback function to display the section (optional)
-		$page_slug
+		$rhmc2d_slug
 	);
 
 	// 2. register fields
-	register_setting( $option_group, 'rhm_c2d_webhook_url');
-	register_setting( $option_group, 'rhm_c2d_webhook_name');
-	register_setting( $option_group, 'rhm_c2d_webhook_avatar');
-	register_setting( $option_group, 'rhm_c2d_webhook_message');
+	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_url');
+	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_name');
+	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_avatar');
+	register_setting( $rhmc2d_option_group, 'rhm_c2d_webhook_message');
 
 	// 3. add fields
 	add_settings_field(
 		'rhm_c2d_webhook_url',
 		'WebHook URL',
-		'rhmc2d_field_webhook_url', // function to print the field
-		$page_slug,
-		$section_id // section ID
+		'rhmc2d_text_input', // function to print the field
+		$rhmc2d_slug,
+		$rhmc2d_section_id, // section ID
+        [
+            'name' => 'rhm_c2d_webhook_url'
+        ]
 	);
 	add_settings_field(
 		'rhm_c2d_webhook_name',
 		'WebHook Name',
-		'rhmc2d_field_webhook_name', // function to print the field
-		$page_slug,
-		$section_id // section ID
+		'rhmc2d_text_input', // function to print the field
+		$rhmc2d_slug,
+		$rhmc2d_section_id, // section ID
+        [
+            'name' => 'rhm_c2d_webhook_name'
+        ]
 	);
 	add_settings_field(
 		'rhm_c2d_webhook_avatar',
 		'WebHook Avatar',
-		'rhmc2d_field_webhook_avatar', // function to print the field
-		$page_slug,
-		$section_id // section ID
+		'rhmc2d_text_input', // function to print the field
+		$rhmc2d_slug,
+		$rhmc2d_section_id, // section ID
+        [
+            'name' => 'rhm_c2d_webhook_avatar'
+        ]
 	);
 	add_settings_field(
 		'rhm_c2d_webhook_message',
 		'WebHook Message',
-		'rhmc2d_field_webhook_message', // function to print the field
-		$page_slug,
-		$section_id // section ID
+		'rhmc2d_text_input', // function to print the field
+		$rhmc2d_slug,
+		$rhmc2d_section_id, // section ID
+        [
+            'name' => 'rhm_c2d_webhook_message'
+        ]
 	);
 }
 
-// custom callback functions to print field HTML
-function rhmc2d_field_webhook_url( $args ){
-	printf(
-		'<input type="text" id="%s" name="%s" value="%s" />',
-		$args[ 'name' ],
-		$args[ 'name' ],
-		get_option( $args[ 'name' ], '' ) // Second parameter is default value of the field
-	);
-}
-function rhmc2d_field_webhook_name( $args ){
-	printf(
-		'<input type="text" id="%s" name="%s" value="%s" />',
-		$args[ 'name' ],
-		$args[ 'name' ],
-		get_option( $args[ 'name' ], '' ) // Second parameter is default value of the field
-	);
-}
-function rhmc2d_field_webhook_avatar( $args ){
-	printf(
-		'<input type="text" id="%s" name="%s" value="%s" />',
-		$args[ 'name' ],
-		$args[ 'name' ],
-		get_option( $args[ 'name' ], '' ) // Second parameter is default value of the field
-	);
-}
-function rhmc2d_field_webhook_message( $args ){
+// custom callback function to print field HTML
+function rhmc2d_text_input( $args ){
 	printf(
 		'<input type="text" id="%s" name="%s" value="%s" />',
 		$args[ 'name' ],
@@ -106,7 +92,7 @@ function rhmc2d_field_webhook_message( $args ){
 }
 
 function my_plugin_options() {
-    global $rhmc2d_slug;
+    global $rhmc2d_slug, $rhmc2d_option_group, $rhmc2d_section_id;
     if ( !current_user_can( 'manage_options' ) )  {
         wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
     }
@@ -115,8 +101,8 @@ function my_plugin_options() {
 			<h1><?php echo get_admin_page_title() ?></h1>
 			<form method="post" action="<?php echo admin_url('options-general.php?page=' . $rhmc2d_slug); ?>">
 				<?php
-					settings_fields( 'rhm_calendar_to_discord' ); // settings group name
-					do_settings_sections( 'rhm_c2d' ); // just a page slug
+                    settings_fields( $rhmc2d_option_group ); // settings group name
+					do_settings_sections( $rhmc2d_slug ); // just a page slug
 					submit_button(); // "Save Changes" button
 				?>
 			</form>
