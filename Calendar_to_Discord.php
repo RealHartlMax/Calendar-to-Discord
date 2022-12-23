@@ -13,6 +13,7 @@ $rhmc2d_slug = 'rhmc2d';
 // Add settings page
 add_action( 'admin_menu', 'my_plugin_menu' );
 function my_plugin_menu() {
+    global $rhmc2d_slug;
     add_options_page( 'Calendar to Discord Options', 'Calendar to Discord', 'manage_options', $rhmc2d_slug, 'my_plugin_options' );
 }
 
@@ -105,6 +106,7 @@ function rhmc2d_field_webhook_message( $args ){
 }
 
 function my_plugin_options() {
+    global $rhmc2d_slug;
     if ( !current_user_can( 'manage_options' ) )  {
         wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
     }
@@ -120,6 +122,27 @@ function my_plugin_options() {
 			</form>
 		</div>
 	<?php
+}
+
+// Show success message
+add_action( 'admin_notices', 'rhmc2d_notice' );
+function rhmc2d_notice() {
+    global $rhmc2d_slug;
+	if(
+		isset( $_GET[ 'page' ] ) 
+		&& $rhmc2d_slug == $_GET[ 'page' ]
+		&& isset( $_GET[ 'settings-updated' ] ) 
+		&& true == $_GET[ 'settings-updated' ]
+	) {
+		?>
+			<div class="notice notice-success is-dismissible">
+				<p>
+					<strong>Calender to Discord: Changes saved.</strong>
+				</p>
+			</div>
+		<?php
+	}
+
 }
 
 // Send Discord message when new event is created
