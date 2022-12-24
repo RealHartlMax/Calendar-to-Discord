@@ -211,7 +211,7 @@ if (is_admin()) {
 add_action('transition_post_status', 'send_discord_message_on_new_event', 10, 3);
 function send_discord_message_on_new_event($new_status, $old_status, $post)
 {
-    
+
     if ( 'tribe_events' !== get_post_type($post) ) {
         return;
     }
@@ -229,6 +229,11 @@ function send_discord_message_on_new_event($new_status, $old_status, $post)
             'description' => get_the_excerpt($post),
             'color' => 6570405,
         ];
+        $thumbnail = get_the_post_thumbnail_url($post);
+        if ($thumbnail) {
+            $embed['image'] = ['url' => $thumbnail];
+        }
+
         send_discord_message($embed);
     }
 }
