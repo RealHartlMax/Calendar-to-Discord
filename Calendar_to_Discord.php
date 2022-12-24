@@ -3,8 +3,8 @@
  * Plugin Name: Calendar to Discord
  * Plugin URI: https://www.github.com/RealHartlMax/Calendar-to-Discord
  * Description: This plugin sends a Discord message when a new event is created in The Events Calendar plugin.
- * Version: 1.0
- * Author: RealHartlMax
+ * Version: 1.0.0
+ * Author: RealHartlMax, Florian König-Heidinger
  * Author URI: https://www.hartlmax.de
  */
 
@@ -56,7 +56,12 @@ class RHM_C2D_OptionsPage
         if (isset($_GET['webhook']) && $_GET['webhook'] === 'test') {
             echo '<p>';
             echo 'Test wurde ausgeführt. ';
-            send_discord_message('Website Max Hartl', 'https://hartlmax.de/');
+            send_discord_message([
+                'title' => get_option('blogname'),
+                'url' => get_option('home'),
+                'description' => get_option('blogdescription'),
+                'color' => 15258703,
+            ]);
             echo '<br />';
             echo '<a href="options-general.php?page=' . $this->slug . '">Testmodus beenden</a>';
             echo '</p>';
@@ -203,23 +208,24 @@ if (is_admin()) {
 }
 
 // Send Discord message when new event is created
-add_action('tribe_events_single_event_before_the_content', 'send_discord_message_on_new_event');
-function send_discord_message_on_new_event()
+add_action('save_post_tribe_events', 'send_discord_message_on_new_event', 10, 3);
+function send_discord_message_on_new_event($post_ID, $post, $update)
 {
     // Check if this is a new event
-    if (is_new_event()) {
+    if (!$update) {
         // Send Discord message with Link to website
-        send_discord_message();
+        $embed = [
+            'title' => get_the_title($post),
+            'url' => get_permalink($post),
+            'description' => get_the_excerpt($post),
+            'color' => 15258703,
+        ];
+        send_discord_message($embed);
     }
 }
 
-function is_new_event()
-{
-    // Check if event is new
-    return true;
-}
 
-function send_discord_message($title = null, $url = null)
+function send_discord_message($embed = null)
 {
     // Get plugin settings
     $options = get_option('rhm_c2d');
@@ -246,13 +252,8 @@ function send_discord_message($title = null, $url = null)
         $body['content'] = $message_mentions . $body['content'];
     }
 
-    if ($title && $url) {
-        $body['embeds'] = [
-            [
-                'title' => $title,
-                'url' => $url,
-            ],
-        ];
+    if ($embed) {
+        $body['embeds'] = [$embed];
     }
 
     // Set up request data
