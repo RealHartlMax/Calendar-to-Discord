@@ -208,11 +208,11 @@ if (is_admin()) {
 }
 
 // Send Discord message when new event is created
-add_action('save_post_tribe_events', 'send_discord_message_on_new_event', 10, 3);
+// add_action('save_post_tribe_events', 'send_discord_message_on_new_event', 10, 3);
 function send_discord_message_on_new_event($post_ID, $post, $update)
 {
     // Check if this is a new event
-    if (!$update) {
+    if (!$update && get_post_status($post) === 'publish') {
         // Send Discord message with Link to website
         $embed = [
             'title' => get_the_title($post),
@@ -270,15 +270,15 @@ function send_discord_message($embed = null)
     // Check for errors
     if (is_wp_error($response)) {
         // Log error message
-        if (is_admin()) {
-            echo 'Fehler: ' . $response->get_error_message();
-        }
+        // if (is_admin()) {
+        //     echo 'Fehler: ' . $response->get_error_message();
+        // }
         error_log('Error sending Discord message: ' . $response->get_error_message());
     } else {
         // Log success message
-        if (is_admin()) {
-            echo 'Ausführen war erfolgreich.';
-        }
+        // if (is_admin()) {
+        //     echo 'Ausführen war erfolgreich.';
+        // }
         error_log('Successfully sent Discord message.');
     }
 }
