@@ -208,17 +208,26 @@ if (is_admin()) {
 }
 
 // Send Discord message when new event is created
-// add_action('save_post_tribe_events', 'send_discord_message_on_new_event', 10, 3);
-function send_discord_message_on_new_event($post_ID, $post, $update)
+add_action('transition_post_status', 'send_discord_message_on_new_event', 10, 3);
+function send_discord_message_on_new_event($new_status, $old_status, $post)
 {
+    
+    if ( 'tribe_events' !== get_post_type($post) ) {
+        return;
+    }
+
+    if ( $old_status === $new_status ) {
+        return;
+    }
+
     // Check if this is a new event
-    if (!$update && get_post_status($post) === 'publish') {
+    if ($new_status === 'publish') {
         // Send Discord message with Link to website
         $embed = [
             'title' => get_the_title($post),
             'url' => get_permalink($post),
             'description' => get_the_excerpt($post),
-            'color' => 15258703,
+            'color' => 6570405,
         ];
         send_discord_message($embed);
     }
